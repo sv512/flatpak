@@ -66,10 +66,6 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         sonar-scanner --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
-    - name: Run tests
-      run: meson test -C _build
-      env:
-        ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
     - name: Collect logs on failure
       if: failure() || cancelled()
       run: mv _build/meson-logs/* test-logs/ || true
