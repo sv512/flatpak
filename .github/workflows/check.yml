@@ -22,8 +22,6 @@ jobs:
         libseccomp-dev libsoup2.4-dev libcurl4-openssl-dev libsystemd-dev libxml2-utils libgpgme11-dev gobject-introspection \
         libgirepository1.0-dev libappstream-dev libdconf-dev clang socat meson libdbus-1-dev e2fslibs-dev bubblewrap xdg-dbus-proxy \
         python3-pip meson ninja-build libyaml-dev libstemmer-dev gperf itstool libmalcontent-0-dev
-        # One of the tests wants this
-        sudo mkdir /tmp/flatpak-com.example.App-OwnedByRoot
     - name: Check out flatpak
       uses: actions/checkout@v1
       with:
@@ -46,11 +44,9 @@ jobs:
       # clash with AddressSanitizer. Instead, the clang build enables those.
       run: |
         meson _build \
-          -Db_sanitize=address,undefined \
           -Dgir=disabled \
           -Dgtkdoc=disabled \
           -Dhttp_backend=curl \
-          -Dinternal_checks=true \
           -Dsystem_bubblewrap=bwrap \
           -Dsystem_dbus_proxy=xdg-dbus-proxy \
           ${NULL+}
@@ -58,8 +54,6 @@ jobs:
         CFLAGS: -O2 -Wp,-D_FORTIFY_SOURCE=2
     - name: Build flatpak w/ Sonarcloud
       run: build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} ninja -C _build
-      env:
-        ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
     - name: Run sonar-scanner
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
