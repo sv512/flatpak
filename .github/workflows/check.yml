@@ -39,7 +39,7 @@ jobs:
         popd
     - name: Create logs dir
       run: mkdir test-logs
-    - name: configure
+    - name: Configure
       # We don't do gtk-doc or GObject-Introspection here, because they can
       # clash with AddressSanitizer. Instead, the clang build enables those.
       run: |
@@ -49,17 +49,24 @@ jobs:
           -Dhttp_backend=curl \
           -Dsystem_bubblewrap=bwrap \
           -Dsystem_dbus_proxy=xdg-dbus-proxy \
+          -Db_coverage=true \
           ${NULL+}
       env:
         CFLAGS: -O2 -Wp,-D_FORTIFY_SOURCE=2
     - name: Build flatpak w/ Sonarcloud
       run: build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} ninja -C _build
+    - name: Run tests
+      run: meson test -C _build
+    - name: Generate coverage analyzis
+      run: ninja -C _build coverage-sonarqube
     - name: Run sonar-scanner
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
-        sonar-scanner --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
+        sonar-scanner \
+          --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
+          --define sonar.coverageReportPaths=_build/meson-logs/coverage.xml
     - name: Collect logs on failure
       if: failure() || cancelled()
       run: mv _build/meson-logs/* test-logs/ || true
