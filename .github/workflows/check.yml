@@ -67,7 +67,7 @@ jobs:
         sonar-scanner \
           --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
           --define sonar.coverageReportPaths=_build/meson-logs/sonarqube.xml \
-          --define sonar.coverage.exclusions=*.y
+          --define sonar.coverage.exclusions=**.y
     - name: Collect logs on failure
       if: failure() || cancelled()
       run: mv _build/meson-logs/* test-logs/ || true
